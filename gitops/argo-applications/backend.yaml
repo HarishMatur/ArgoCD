@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-application
+  name: backend-application
   namespace: argocd
   labels:
-    app: frontend
+    app: backend
     environment: dev
 
   finalizers:
@@ -14,7 +14,7 @@ spec:
   source:
     repoURL: https://github.com/HarishMatur/ArgoCD.git
     targetRevision: main
-    path: gitops/frontend
+    path: gitops/backend-manifest
   destination:
     server: https://kubernetes.default.svc
     namespace: apps
