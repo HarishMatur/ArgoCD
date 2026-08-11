@@ -18,7 +18,7 @@ spec:
       path: app-of-apps/applications
     destination:
       server: https://kubernetes.default.svc
-      namespace: app-of-apps
+      namespace: argocd
 
     syncPolicy:
 

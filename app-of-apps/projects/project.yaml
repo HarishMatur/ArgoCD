@@ -9,7 +9,10 @@ spec:
       - https://github.com/HarishMatur/ArgoCD.git
     destinations:
       - server: https://kubernetes.default.svc
+        namespace: argocd
+      - server: https://kubernetes.default.svc
         namespace: app-of-apps
+
     namespaceResourceWhitelist:
       - group: '*'
         kind: '*'
