@@ -16,7 +16,7 @@ spec:
       repoURL: https://github.com/HarishMatur/ArgoCD.git
       targetRevision: main
       path: app-of-apps/manifest/frontend
-  destinations:
+  destination:
       server: https://kubernetes.default.svc
       namespace: app-of-apps
   syncPolicy:
@@ -26,10 +26,10 @@ spec:
       selfHeal: true
     
     syncOptions:
-      - CreateNamespace: true
-      - ApplyOutofSyncOnly: true
-      - PruneLast: true
-      - ServerSideApply: true
+      - CreateNamespace=true
+      - ApplyOutofSyncOnly=true
+      - PruneLast=true
+      - ServerSideApply=true
 
     retry:
       limit: 5
