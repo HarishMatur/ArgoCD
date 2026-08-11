@@ -13,7 +13,7 @@ metadata:
 spec:
   project: app-of-apps
   source:
-      repoURL :https://github.com/HarishMatur/ArgoCD.git
+      repoURL: https://github.com/HarishMatur/ArgoCD.git
       targetRevision: main
       path: app-of-apps/manifest/frontend
   destinations:
