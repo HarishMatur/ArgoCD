@@ -16,11 +16,11 @@ spec:
   - list: # List Generator: creates one Argo CD Application for each item defined under elements
       elements:
         - appName: frontend # Variable used in the ApplicationSet template, e.g. {{.appName}}
-          path: applicationset/list-generator/manifest # Git path containing the frontend Kubernetes manifests
+          path: applicationset/list-generator/manifest/frontend # Git path containing the frontend Kubernetes manifests
           namespace: applicationset # Target Kubernetes namespace where the generated frontend Application will deploy resources
 
         - appName: backend # Variable used in the ApplicationSet template, e.g. {{.appName}}
-          path: applicationset/list-generator/manifest # Git path containing the backend Kubernetes manifests
+          path: applicationset/list-generator/manifest/backend # Git path containing the backend Kubernetes manifests
           namespace: applicationset # Target Kubernetes namespace where the generated backend Application will deploy resources
 
 # All the values from the generator will be passed through templates which will creates the Application for each app
