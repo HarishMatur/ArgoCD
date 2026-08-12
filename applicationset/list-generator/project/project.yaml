@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1aplpha1
+kind: AppProject
+metadata:
+  name: applicationset
+  namespace: argocd
+
+spec:
+  description: This project is for the applicationset
+
+  source:
+    RepoURL: https://github.com/HarishMatur/ArgoCD.git
+  destination:
+    - server: https://kubernetes.default.svc
+      namespace: applicationset
+  
+  namespaceResourceWhitelist:
+    - kind: '*'
+      group: '*'
+  
+  clusterResourceWhitelist:
+    - kind: '*'
+      group: '*'

@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: applicationSet
+metadata: 
+  name: argo-applicationset
+  namespace: argocd
+
+# Tells ApplicationSet to use Go templating syntax for feilds like - name: '{{.appName}}-app'
+spec:
+  goTemplate: true
+
+# If the template references a variable that does not exist, fail with an error instead of silently rendering an empty value.
+  goTemplateOptions:
+    - missingkey=error
+  
+  generators:
+  - list: # List Generator: creates one Argo CD Application for each item defined under elements
+      elements:
+        - appName: frontend # Variable used in the ApplicationSet template, e.g. {{.appName}}
+          path: applicationset/list-generator/manifest # Git path containing the frontend Kubernetes manifests
+          namespace: applicationset # Target Kubernetes namespace where the generated frontend Application will deploy resources
+
+        - appName: backend # Variable used in the ApplicationSet template, e.g. {{.appName}}
+          path: applicationset/list-generator/manifest # Git path containing the backend Kubernetes manifests
+          namespace: applicationset # Target Kubernetes namespace where the generated backend Application will deploy resources
+
+# All the values from the generator will be passed through templates which will creates the Application for each app
+
+  template:
+    metadata:
+      name: '{{.appName}}-list-app'
+
+      labels:
+        app: '{{.appName}}'
+        environment: dev
+
+    spec:
+      project: applicationset
+
+      source:
+        repoURL: https://github.com/HarishMatur/ArgoCD.git
+        targetrevision: main
+        path: '{{.path}}'
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.namespace}}'
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+        syncOption:
+          - CreateNamespace=true
+          - AllowOutOfSyncOnly=true
+          - PruneLast=true
+          - ServerSideApply=true
+
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+  
+      revisionHistoryLimit: 10
