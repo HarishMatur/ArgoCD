@@ -93,3 +93,40 @@ Deploy only to DEV
 clusters + matchLabels environment=prod
     =
 Deploy only to PROD
+
+
+====================================
+
+               APPLICATIONSET
+                     │
+             Git Generator
+                     │
+        repoURL + revision + path
+                     │
+                     ▼
+          Discover applications
+                     │
+              frontend/backend
+                     │
+                     X
+              Cluster Generator
+                     │
+                 dev/prod
+                     │
+                     ▼
+               Matrix combines
+                     │
+                     ▼
+          Generated Applications
+                     │
+       ┌─────────────┴─────────────┐
+       │                           │
+     SOURCE                    DESTINATION
+       │                           │
+ repoURL                     server
+ targetRevision              namespace
+ path
+       │                           │
+       ▼                           ▼
+ Read manifests              Deploy manifests
+ from Git                    into Kubernetes
