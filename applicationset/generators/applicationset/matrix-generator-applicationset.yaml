@@ -1,0 +1,71 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: git-matrix-generator
+  namespace: argocd
+
+spec:
+  gotemplate: true
+  goTemplateOptions:
+    - misskingkey=error
+ 
+  generators:
+    - matrix
+        generators:
+
+        # Finds frontend/ and backend/ folders from Git
+          - git:
+              repoURL:
+              revision:
+
+              directories:
+                - path: applicationset/generators/manifest/*
+          
+# Finds DEV and PROD clusters from Argo CD     
+          - clusters: {}
+
+##########################################
+# To deploy to only specific cluster
+##########################################
+#          - clusters:
+#              selector:
+#                matchLabels:
+#                  environment: dev
+
+
+  template:
+    metadata:
+      name: '{{.nameNormalized}}-{{.path.basename}}'
+
+    source:
+      repoURL: 
+      targetRevision:
+      path: '{{.path.path}}'
+    
+    destination:
+      server: '{{.server}}'
+      namespace: matrix-generator
+
+    syncPolicy:
+      automated:
+        prune: true
+        selfheal: true
+      
+      syncOptions:
+        - CreateNamespace=true
+        - ApplyOutOfSyncOnly=true
+        - ServerSideApply=true
+        - Prunelast=true
+      
+      retry:
+        limit: 5
+        
+        backoff:
+          duration: 5s
+          factor: 2
+          maxDuration: 3m
+    
+    revisionHistoryLimit: 10
+
+
+          

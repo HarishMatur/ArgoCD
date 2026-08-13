@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+
+metadata:
+  name: cluster-generator-appset
+  namespace: argocd
+
+spec:
+  # Enable Go template expressions such as {{.nameNormalized}}
+  # and {{.server}}.
+  goTemplate: true
+
+  # Fail immediately if the template references a variable
+  # that does not exist.
+  goTemplateOptions:
+    - missingkey=error
+
+  generators:
+
+    # Cluster Generator:
+    # discovers all clusters currently registered with Argo CD.
+    - clusters: {}
+
+  template:
+
+    metadata:
+      # Generates a unique Argo CD Application name for each cluster.
+      #
+      # Example:
+      # in-cluster-nginx
+      # aks-dev-nginx
+      # aks-prod-nginx
+      name: '{{.nameNormalized}}-nginx'
+
+      labels:
+        managed-by: applicationset
+        generator: cluster
+        cluster: '{{.nameNormalized}}'
+
+    spec:
+      project: applicationset
+
+      source:
+        repoURL: https://github.com/HarishMatur/ArgoCD.git
+        targetRevision: main
+        path: applicationset/cluster-generator/manifest
+
+      destination:
+
+        # The server value is automatically obtained from
+        # the cluster discovered by the Cluster Generator.
+        server: '{{.server}}'
+
+        # The workload will run in this namespace
+        # on every selected cluster.
+        namespace: cluster-generator
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+          - PruneLast=true
+          - ServerSideApply=true
+
+        retry:
+          limit: 5
+
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+
+      revisionHistoryLimit: 10
