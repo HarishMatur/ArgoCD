@@ -1,0 +1,6 @@
+{
+  "environment": "qa",
+  "namespace": "apps-qa",
+  "revision": "release",
+  "replicas": "2"
+}

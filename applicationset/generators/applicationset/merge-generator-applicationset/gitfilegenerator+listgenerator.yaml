@@ -1,0 +1,127 @@
+Matrix Generator = create combinations.
+Merge Generator = apply defaults and override/enrich values for matching items.
+
+
+
+The simplest distinction is:
+
+Matrix Generator	Merge Generator
+Combines generator outputs	Matches and merges generator outputs
+Creates Cartesian product (A × B)	Matches using mergeKeys
+Usually increases number of results	Usually keeps the base number of results
+Used for apps × environments/clusters	Used for defaults + overrides
+No matching key required	mergeKeys required
+Example: 2 apps × 3 env = 6	Example: 3 env + 2 overrides = still 3
+
+
+# Git File Generator
+#         ↓
+# Reads base environment configuration from Git
+
+#         +
+
+# List Generator
+#         ↓
+# Overrides selected environments
+
+#         ↓
+# Merge Generator
+#         ↓
+# Final configuration
+
+#################################
+#folder Structure
+#################################
+
+# applicationset/
+# └── merge-generator/
+#     ├── applicationset.yaml
+#     │
+#     ├── configs/
+#     │   ├── dev.json
+#     │   ├── qa.json
+#     │   └── prod.json
+#     │
+#     └── manifest/
+#         ├── deployment.yaml
+#         └── service.yaml
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: git-file-list-generator
+  namespace: argocd
+
+spec:
+  goTemplate: true
+
+  goTemplateOptions:
+    - missingkey=error
+  
+  generators:
+    - merge:
+        mergeKeys:
+          - environment
+
+        generators:
+          # ------------------------------------------------
+          # Generator 1 - Git File Generator
+          #
+          # Provides the BASE configuration.
+          # ------------------------------------------------
+          - git:
+              repoURL: https://github.com/HarishMatur/ArgoCD.git
+              revision: main
+              
+              files:
+                - path: applicationset/merge-generator-applicationset/configs/*.json
+
+          # ------------------------------------------------
+          # Generator 2 - List Generator
+          #
+          # Overrides values returned by Generator 1
+          # when "environment" matches.
+          # ------------------------------------------------
+
+          - list:
+              elements:
+
+                # Override QA
+                - environment: qa
+                  replicas: "3"
+
+                # Override Prod
+                - environment: prod
+                  replicas: "10"
+          
+  template:
+
+    metadata:
+      name: 'nginx-{{.environment}}'
+      labels:
+        app: nginx
+        environment: '{{.environment}}'
+
+    spec:
+      project: git-file-list-generator
+      source:
+        repoURL:
+        targetRevision: '{{.revision}}'
+        path: applicationset/merge-generator/manifest
+
+      destination:
+        server: 
+        namespace: '{{.namespace}}'
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+          - Prunelast=true
+          - ServerSideOnly=true
+
+      revisionHistoryLimit: 10

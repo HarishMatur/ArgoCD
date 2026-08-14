@@ -1,0 +1,96 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+
+metadata:
+  name: merge-generator-appset
+  namespace: argocd
+
+spec:
+  goTemplate: true
+
+  goTemplateOptions:
+    - missingkey=error
+
+  generators:
+
+    - merge:
+
+        # This key is used to identify which records
+        # from the different generators belong together.
+        mergeKeys:
+          - environment
+
+        generators:
+
+          # Generator 1:
+          # Base/default configuration for all environments.
+          - list:
+              elements:
+
+                - environment: dev
+                  namespace: apps-dev
+                  revision: develop
+                  replicas: "1"
+                  autoSync: "true"
+
+                - environment: qa
+                  namespace: apps-qa
+                  revision: release
+                  replicas: "2"
+                  autoSync: "true"
+
+                - environment: prod
+                  namespace: apps-prod
+                  revision: main
+                  replicas: "3"
+                  autoSync: "false"
+
+
+          # Generator 2:
+          # Override selected values for matching environments.
+          - list:
+              elements:
+
+                - environment: prod
+                  replicas: "5"
+
+                - environment: qa
+                  replicas: "3"
+
+  template:
+
+    metadata:
+      name: 'nginx-{{.environment}}'
+
+      labels:
+        app: nginx
+        environment: '{{.environment}}'
+        managed-by: applicationset
+
+    spec:
+
+      project: applicationset
+
+      source:
+        repoURL: https://github.com/HarishMatur/ArgoCD.git
+
+        # Comes from the merged generator result.
+        targetRevision: '{{.revision}}'
+
+        path: applicationset/merge-generator/manifest
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.namespace}}'
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+          - PruneLast=true
+
+      revisionHistoryLimit: 10

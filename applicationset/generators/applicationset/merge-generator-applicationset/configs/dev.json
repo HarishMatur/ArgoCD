@@ -1,0 +1,6 @@
+{
+  "environment": "dev",
+  "namespace": "apps-dev",
+  "revision": "develop",
+  "replicas": "1"
+}

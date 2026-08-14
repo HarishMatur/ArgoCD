@@ -1,0 +1,6 @@
+{
+  "environment": "prod",
+  "namespace": "apps-prod",
+  "revision": "main",
+  "replicas": "3"
+}
