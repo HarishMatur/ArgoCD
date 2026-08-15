@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-dev-clusters
+  namespace: argocd
+
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  
+  generators:
+    - clusters:
+        selector:
+          matchLables:
+            environment: dev
+
+  
+  template:
+    metadata:
+      name: 'nginx-{{.name}}'
+
+    spec:
+      project: multi-cluster
+
+      source:
+        repoURL: https://github.com/HarishMatur/ArgoCD.git
+        path: multi-cluster/manifests/nginx
+        targetRevision: main
+
+      destination:
+        server: '{{.server}}'
+        namespace: nginx-dev
+
+      syncPolicy:
+
+        automated:
+          prune: true
+          selfHeal: true
+
+        syncOptions:
+          - CreateNamespace=true        
