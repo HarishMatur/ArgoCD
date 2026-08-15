@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  project: multi-cluster
+  source:
+    repoURL: https://github.com/HarishMatur/ArgoCD.git
+    path: multi-cluster/manifests/nginx
+    targetRevision: main
+  
+  destination:
+    server: https://dev-cluster-control-plane:6443
+    namespace: nginx-dev
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+
+

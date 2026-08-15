@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: multi-cluster
+  namespace: argocd
+
+spec:
+  description: Project for Argo CD Multi-Cluster learning
+
+  sourceRepos:
+    - https://github.com/HarishMatur/ArgoCD.git
+  
+  destinations:
+    - server: https://dev-cluster-control-plane:6443
+      namespace:  nginx-dev
+  
+  namespaceResourceWhitelist:
+    - kind: '*'
+      group: '*'
+
+  clusterResourceWhitelist:
+    - kind: '*'
+      group: '*'
