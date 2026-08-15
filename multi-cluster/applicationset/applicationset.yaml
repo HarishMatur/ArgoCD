@@ -1,36 +1,44 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: nginx-dev-clusters
+  name: multi-cluster
   namespace: argocd
 
 spec:
-  goTemplate: true
-  goTemplateOptions:
-    - missingkey=error
-  
   generators:
-    - clusters:
-        selector:
-          matchLables:
-            environment: dev
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/HarishMatur/ArgoCD.git
+              revision: main
+              directories:
+                - path: multi-cluster/manifests/*
 
+          - clusters:
+              selector:
+                matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - dev
+                      - prod
   
   template:
     metadata:
-      name: 'nginx-{{.name}}'
-
+      name: '{{.path.basename}}-{{.name}}'
+    
     spec:
       project: multi-cluster
 
       source:
         repoURL: https://github.com/HarishMatur/ArgoCD.git
-        path: multi-cluster/manifests/nginx
         targetRevision: main
+        path: '{{.path.path}}'
 
       destination:
-        server: '{{.server}}'
-        namespace: nginx-dev
+        server: '{{server}}'
+        namespace: '{{.path.basename}}-{{index .metadata.labels "environment"}}'
+
 
       syncPolicy:
 
@@ -39,4 +47,4 @@ spec:
           selfHeal: true
 
         syncOptions:
-          - CreateNamespace=true        
+          - CreateNamespace=true

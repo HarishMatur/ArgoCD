@@ -12,7 +12,13 @@ spec:
   
   destinations:
     - server: https://dev-cluster-control-plane:6443
-      namespace:  nginx-dev
+      namespace:  '*'
+
+    - server: https://prod-cluster-control-plane:6443
+      namespace: '*'
+
+    - server: https://kubernetes.default.svc
+      namespace: '*'
   
   namespaceResourceWhitelist:
     - kind: '*'
