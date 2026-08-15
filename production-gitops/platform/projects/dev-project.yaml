@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+
+metadata:
+  name: dev-project
+  namespace: argocd
+
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+
+spec:
+  sourceRepos:
+    - https://github.com/HarishMatur/ArgoCD.git
+
+  destinations:
+    - server: https://dev-cluster-control-plane:6443
+      namespace: '*'
+
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'

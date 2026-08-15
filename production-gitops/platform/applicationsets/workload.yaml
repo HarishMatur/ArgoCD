@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: production-workload
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+
+spec:
+  goTemplate: true
+
+  goTemplateOptions:
+    - missingkey=error
+  
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/HarishMatur/ArgoCD.git
+              revision: main
+              directories:
+                - path: production-gitops/apps/*
+          
+          - clusters:
+              selector:
+                matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - dev
+                      - prod
+          
+  template:
+    metadata:
+      name: '{{.path.basename}}-{{.name}}'
+      labels:
+        application: '{{.path.basename}}'
+        environment: '{{index .metadata.labels "environment"}}'
+        cluster: '{{.name}}'
+
+    spec:
+      project: '{{index .metadata.labels "environment"}}-project'
+
+      source:
+        repoURL: https://github.com/HarishMatur/ArgoCD.git
+        targetRevision: main
+        path: '{{.path.path}}'
+
+        helm:
+          valueFiles:
+            - '../../environments/{{index .metadata.labels "environment"}}/{{.path.basename}}-values.yaml'
+
+      destination:
+        server: '{{.server}}'
+        namespace: '{{.path.basename}}-{{index .metadata.labels "environment"}}'
+
+      syncPolicy:
+
+        automated:
+          prune: true
+          selfHeal: true
+
+        syncOptions:
+          - CreateNamespace=true      
